@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yoklama</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --ink:#22324F;
+    --paper:#FAF7F2;
+    --paper-2:#F1ECE2;
+    --brass:#B8862E;
+    --brass-light:#E4C988;
+    --red:#A13D2B;
+    --teal:#3E6E63;
+    --line:rgba(34,50,79,0.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'IBM Plex Sans', sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .card{
+    width:100%;
+    max-width:460px;
+    background:var(--paper);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Spectral', serif;
+    font-weight:600;
+    font-size:28px;
+    margin:0 0 4px 0;
+  }
+  .sub{
+    font-size:14px;
+    color:#5b6b85;
+    margin-bottom:24px;
+  }
+  hr{
+    border:none;
+    border-top:1px solid var(--line);
+    margin:24px 0;
+  }
+  /* Seal / QR ring */
+  .seal-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin:8px 0 12px 0;
+  }
+  .seal{
+    position:relative;
+    width:240px;
+    height:240px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .seal svg{
+    position:absolute;
+    top:0;left:0;
+    width:240px;height:240px;
+    transform:rotate(-90deg);
+  }
+  .seal svg circle{
+    fill:none;
+    stroke-width:3;
+  }
+  .seal svg .track{ stroke:var(--paper-2); }
+  .seal svg .progress{
+    stroke:var(--brass);
+    stroke-linecap:round;
+    transition:stroke-dashoffset 1s linear;
+  }
+  .qr-box{
+    width:188px;height:188px;
+    background:var(--paper);
+    border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .countdown{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:#5b6b85;
+    margin-top:10px;
+    letter-spacing:0.05em;
+  }
+  .countdown b{ color:var(--ink); font-weight:500; }
+
+  label{
+    display:block;
+    font-size:12px;
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#5b6b85;
+    margin-bottom:6px;
+  }
+  input[type=text], select{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:#fff;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    margin-bottom:16px;
+  }
+  input:focus, select:focus, button:focus{
+    outline:2px solid var(--brass);
+    outline-offset:1px;
+  }
+  button{
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:4px;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:15px;
+    font-weight:500;
+    cursor:pointer;
+  }
+  button:hover{ background:#16233c; }
+  button.secondary{
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--line);
+  }
+  button.secondary:hover{ background:var(--paper-2); }
+
+  .row{ display:flex; gap:10px; }
+  .row > *{ flex:1; }
+
+  .field-row{ display:flex; gap:10px; }
+  .field-row > div{ flex:1; }
+
+  /* roster */
+  .roster-head{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:12px;
+  }
+  .roster-head h2{
+    font-family:'Spectral', serif;
+    font-size:18px; font-weight:600; margin:0;
+  }
+  .count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px; color:var(--teal);
+  }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  th, td{
+    text-align:left; padding:8px 4px;
+    border-bottom:1px solid var(--line);
+  }
+  th{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; letter-spacing:0.06em; text-transform:uppercase;
+    color:#5b6b85; font-weight:500;
+  }
+  td.num{ font-family:'IBM Plex Mono', monospace; color:#5b6b85; width:24px; }
+  td.time{ font-family:'IBM Plex Mono', monospace; color:#5b6b85; text-align:right; }
+  .empty{
+    font-size:13px; color:#5b6b85; padding:18px 0; text-align:center;
+    border:1px dashed var(--line); border-radius:4px;
+  }
+
+  /* status panels */
+  .panel{
+    border-radius:6px;
+    padding:18px;
+    margin-bottom:16px;
+    font-size:14px;
+    line-height:1.5;
+  }
+  .panel.ok{ background:#EAF1EE; border:1px solid var(--teal); color:var(--teal); }
+  .panel.warn{ background:#F6E9E5; border:1px solid var(--red); color:var(--red); }
+  .panel b{ font-weight:600; }
+
+  .hidden{ display:none; }
+
+  @media (prefers-reduced-motion: reduce){
+    .seal svg .progress{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="card" id="app"></div>
+
+<script>
+const REFRESH_OPTIONS = [15,20,30];
+
+// ---------- helpers ----------
+function hashToken(str){
+  let h = 5381;
+  for(let i=0;i<str.length;i++){
+    h = ((h<<5)+h) + str.charCodeAt(i);
+    h = h & 0xFFFFFFFF;
+  }
+  return Math.abs(h).toString(36).toUpperCase().padStart(6,'0').slice(0,6);
+}
+function getSlot(refreshSec){ return Math.floor(Date.now()/1000/refreshSec); }
+function fmtTime(iso){
+  const d = new Date(iso);
+  return d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+const params = new URLSearchParams(window.location.search);
+const app = document.getElementById('app');
+
+// ====================================================================
+// STUDENT VIEW
+// ====================================================================
+if(params.has('session')){
+  renderStudentView();
+} else {
+  renderTeacherView();
+}
+
+function renderStudentView(){
+  const sid = params.get('session');
+  const token = params.get('t');
+  const refreshSec = parseInt(params.get('r')||'20',10);
+  const course = params.get('course') ? decodeURIComponent(params.get('course')) : '';
+
+  const slotNow = getSlot(refreshSec);
+  const valid = token === hashToken(sid+':'+slotNow) || token === hashToken(sid+':'+(slotNow-1));
+
+  if(!valid){
+    app.innerHTML = `
+      <div class="eyebrow">Yoklama · Giriş</div>
+      <h1>Kod süresi doldu</h1>
+      <p class="sub">${course ? course+' — ' : ''}Bu kare kod artık geçerli değil. Ekranda görünen güncel kodu okutmanız gerekiyor.</p>
+      <div class="panel warn">
+        Kare kod her ${refreshSec} saniyede bir değişir. Lütfen telefonunuzun kamerasını tekrar ekrana yöneltin ve <b>o anki</b> kodu okutun.
+      </div>
+    `;
+    return;
+  }
+
+  app.innerHTML = `
+    <div class="eyebrow">Yoklama · Giriş</div>
+    <h1>${course || 'Yoklama'}</h1>
+    <p class="sub">Aşağıya bilgilerinizi girerek bu ders için yoklamaya katılın.</p>
+    <div id="form-wrap">
+      <label for="no">Öğrenci numarası</label>
+      <input type="text" id="no" inputmode="numeric" autocomplete="off" placeholder="Örn. 20231234">
+      <label for="name">Ad soyad</label>
+      <input type="text" id="name" autocomplete="off" placeholder="Örn. Ayşe Yılmaz">
+      <button id="submit-btn">Yoklamaya katıl</button>
+    </div>
+    <div id="result"></div>
+  `;
+
+  document.getElementById('submit-btn').addEventListener('click', async ()=>{
+    const no = document.getElementById('no').value.trim();
+    const name = document.getElementById('name').value.trim();
+    const resultEl = document.getElementById('result');
+    if(!no || !name){
+      resultEl.innerHTML = `<div class="panel warn">Lütfen öğrenci numaranızı ve adınızı girin.</div>`;
+      return;
+    }
+    const key = `attendance:${sid}:${no}`;
+    try{
+      let existing = null;
+      try{
+        existing = await window.storage.get(key, true);
+      }catch(e){ existing = null; }
+
+      if(existing){
+        const data = JSON.parse(existing.value);
+        resultEl.innerHTML = `<div class="panel warn">Bu öğrenci numarası için bu derste zaten <b>${fmtTime(data.time)}</b> saatinde kayıt alınmış.</div>`;
+        document.getElementById('form-wrap').classList.add('hidden');
+        return;
+      }
+      const record = { studentNo: no, name: name, time: new Date().toISOString() };
+      const ok = await window.storage.set(key, JSON.stringify(record), true);
+      if(!ok){ throw new Error('write failed'); }
+      document.getElementById('form-wrap').classList.add('hidden');
+      resultEl.innerHTML = `<div class="panel ok">Kaydınız alındı — <b>${fmtTime(record.time)}</b>. ${name} (${no})</div>`;
+    }catch(e){
+      resultEl.innerHTML = `<div class="panel warn">Kayıt sırasında bir sorun oluştu. Lütfen tekrar deneyin.</div>`;
+    }
+  });
+}
+
+// ====================================================================
+// TEACHER VIEW
+// ====================================================================
+function renderTeacherView(){
+  app.innerHTML = `
+    <div class="eyebrow">Yoklama · Öğretmen</div>
+    <h1>Ders oturumu</h1>
+    <p class="sub">Bir oturum başlatın; ekrandaki kare kod düzenli olarak değişecek. Öğrenciler her okutmada o anki kodu kullanmak zorunda.</p>
+
+    <div id="setup">
+      <label for="course">Ders adı (opsiyonel)</label>
+      <input type="text" id="course" placeholder="Örn. Veri Yapıları — Salı 10:00">
+      <label for="refresh">Kod yenileme süresi</label>
+      <select id="refresh">
+        ${REFRESH_OPTIONS.map(s=>`<option value="${s}" ${s===20?'selected':''}>${s} saniye</option>`).join('')}
+      </select>
+      <button id="start-btn">Dersi başlat</button>
+    </div>
+
+    <div id="session" class="hidden">
+      <div class="seal-wrap">
+        <div class="seal">
+          <svg viewBox="0 0 240 240">
+            <circle class="track" cx="120" cy="120" r="116"/>
+            <circle class="progress" id="ring" cx="120" cy="120" r="116"
+                    stroke-dasharray="729" stroke-dashoffset="0"/>
+          </svg>
+          <div class="qr-box" id="qr"></div>
+        </div>
+        <div class="countdown">Yeni kod: <b id="secs">--</b> sn sonra</div>
+      </div>
+
+      <hr>
+
+      <div class="roster-head">
+        <h2 id="course-title">Ders</h2>
+        <span class="count"><span id="count">0</span> öğrenci</span>
+      </div>
+      <div id="roster"></div>
+
+      <div class="row" style="margin-top:16px;">
+        <button class="secondary" id="csv-btn">CSV indir</button>
+        <button class="secondary" id="end-btn">Dersi bitir</button>
+      </div>
+    </div>
+
+    <div id="ended" class="hidden">
+      <div class="panel ok">Oturum sonlandırıldı. Katılım listesini CSV olarak indirebilirsiniz.</div>
+      <button class="secondary" id="csv-btn-2">CSV indir</button>
+    </div>
+  `;
+
+  document.getElementById('start-btn').addEventListener('click', startSession);
+}
+
+let timers = {};
+let records = new Map();
+let sessionState = {};
+
+function startSession(){
+  const course = document.getElementById('course').value.trim();
+  const refreshSec = parseInt(document.getElementById('refresh').value,10);
+  const sid = Math.random().toString(36).slice(2,8).toUpperCase();
+
+  sessionState = { sid, course, refreshSec };
+  records = new Map();
+
+  document.getElementById('setup').classList.add('hidden');
+  document.getElementById('session').classList.remove('hidden');
+  document.getElementById('course-title').textContent = course || `Oturum ${sid}`;
+
+  const ring = document.getElementById('ring');
+  const CIRC = 2 * Math.PI * 116;
+  ring.setAttribute('stroke-dasharray', CIRC.toFixed(0));
+
+  function refreshQR(){
+    const slot = getSlot(refreshSec);
+    const token = hashToken(sid+':'+slot);
+    let url = `${location.origin}${location.pathname}?session=${sid}&t=${token}&r=${refreshSec}`;
+    if(course) url += `&course=${encodeURIComponent(course)}`;
+
+    const qrBox = document.getElementById('qr');
+    qrBox.innerHTML = '';
+    new QRCode(qrBox, { text: url, width: 180, height: 180, colorDark: '#22324F', colorLight: '#FAF7F2' });
+  }
+
+  function tick(){
+    const refreshSec2 = sessionState.refreshSec;
+    const elapsed = (Date.now()/1000) % refreshSec2;
+    const remaining = Math.ceil(refreshSec2 - elapsed);
+    document.getElementById('secs').textContent = remaining;
+
+    const CIRC2 = 2 * Math.PI * 116;
+    const frac = elapsed / refreshSec2;
+    ring.setAttribute('stroke-dashoffset', (CIRC2 * frac).toFixed(1));
+
+    const currentSlot = getSlot(refreshSec2);
+    if(sessionState._lastSlot !== currentSlot){
+      sessionState._lastSlot = currentSlot;
+      refreshQR();
+    }
+  }
+
+  async function pollAttendance(){
+    try{
+      const res = await window.storage.list(`attendance:${sid}:`, true);
+      if(res && res.keys){
+        for(const key of res.keys){
+          if(!records.has(key)){
+            try{
+              const rec = await window.storage.get(key, true);
+              if(rec){ records.set(key, JSON.parse(rec.value)); }
+            }catch(e){ /* skip */ }
+          }
+        }
+        renderRoster();
+      }
+    }catch(e){ /* ignore */ }
+  }
+
+  refreshQR();
+  sessionState._lastSlot = getSlot(refreshSec);
+  timers.ring = setInterval(tick, 1000);
+  timers.poll = setInterval(pollAttendance, 6000);
+  pollAttendance();
+
+  document.getElementById('csv-btn').addEventListener('click', downloadCSV);
+  document.getElementById('csv-btn-2').addEventListener('click', downloadCSV);
+  document.getElementById('end-btn').addEventListener('click', endSession);
+}
+
+function renderRoster(){
+  const rosterEl = document.getElementById('roster');
+  const countEl = document.getElementById('count');
+  const list = Array.from(records.values()).sort((a,b)=> new Date(a.time)-new Date(b.time));
+  countEl.textContent = list.length;
+
+  if(list.length===0){
+    rosterEl.innerHTML = `<div class="empty">Henüz kayıt yok. Öğrenciler kare kodu okuttukça burada görünecek.</div>`;
+    return;
+  }
+  rosterEl.innerHTML = `
+    <table>
+      <thead><tr><th>#</th><th>Öğrenci no</th><th>Ad soyad</th><th style="text-align:right;">Saat</th></tr></thead>
+      <tbody>
+        ${list.map((r,i)=>`<tr><td class="num">${i+1}</td><td>${r.studentNo}</td><td>${r.name}</td><td class="time">${fmtTime(r.time)}</td></tr>`).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function downloadCSV(){
+  const list = Array.from(records.values()).sort((a,b)=> new Date(a.time)-new Date(b.time));
+  let csv = 'Ogrenci No,Ad Soyad,Saat\n';
+  list.forEach(r=>{ csv += `${r.studentNo},"${r.name}",${fmtTime(r.time)}\n`; });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  const dateStr = new Date().toISOString().slice(0,10);
+  link.download = `yoklama_${sessionState.sid}_${dateStr}.csv`;
+  link.click();
+}
+
+function endSession(){
+  clearInterval(timers.ring);
+  clearInterval(timers.poll);
+  document.getElementById('session').classList.add('hidden');
+  document.getElementById('ended').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
