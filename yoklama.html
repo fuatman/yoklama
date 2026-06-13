@@ -245,11 +245,12 @@ function renderStudentView(){
   const course = params.get('course') ? decodeURIComponent(params.get('course')) : '';
 
   const slotNow = getSlot(refreshSec);
-  // Telefonun kamera + sayfa yükleme süresine tolerans: şu anki ve son 3 kodu da kabul et
-  const valid = [0,1,2,3].some(back => token === hashToken(sid+':'+(slotNow-back)));
+  // Cihaz saatleri arasında fark olabileceği için hem geçmiş hem gelecek kodları kabul et
+  const TOLERANCE = [-2,-1,0,1,2,3];
+  const valid = TOLERANCE.some(delta => token === hashToken(sid+':'+(slotNow+delta)));
 
   if(!valid){
-    const expected = [0,1,2,3].map(back => hashToken(sid+':'+(slotNow-back)));
+    const expected = TOLERANCE.map(delta => hashToken(sid+':'+(slotNow+delta)));
     app.innerHTML = `
       <div class="eyebrow">Yoklama · Giriş</div>
       <h1>Kod süresi doldu</h1>
