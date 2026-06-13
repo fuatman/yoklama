@@ -209,7 +209,7 @@
 <div class="card" id="app"></div>
 
 <script>
-const REFRESH_OPTIONS = [15,20,30];
+const REFRESH_OPTIONS = [20,30,45,60];
 
 // ---------- helpers ----------
 function hashToken(str){
@@ -320,7 +320,7 @@ function renderTeacherView(){
       <input type="text" id="course" placeholder="Örn. Veri Yapıları — Salı 10:00">
       <label for="refresh">Kod yenileme süresi</label>
       <select id="refresh">
-        ${REFRESH_OPTIONS.map(s=>`<option value="${s}" ${s===20?'selected':''}>${s} saniye</option>`).join('')}
+        ${REFRESH_OPTIONS.map(s=>`<option value="${s}" ${s===30?'selected':''}>${s} saniye</option>`).join('')}
       </select>
       <button id="start-btn">Dersi başlat</button>
     </div>
