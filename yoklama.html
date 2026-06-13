@@ -67,8 +67,8 @@
   }
   .seal{
     position:relative;
-    width:240px;
-    height:240px;
+    width:280px;
+    height:280px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -76,7 +76,7 @@
   .seal svg{
     position:absolute;
     top:0;left:0;
-    width:240px;height:240px;
+    width:280px;height:280px;
     transform:rotate(-90deg);
   }
   .seal svg circle{
@@ -90,11 +90,12 @@
     transition:stroke-dashoffset 1s linear;
   }
   .qr-box{
-    width:188px;height:188px;
-    background:var(--paper);
+    width:236px;height:236px;
+    background:#FFFFFF;
     border-radius:6px;
     display:flex;align-items:center;justify-content:center;
     overflow:hidden;
+    padding:8px;
   }
   .countdown{
     font-family:'IBM Plex Mono', monospace;
@@ -244,7 +245,8 @@ function renderStudentView(){
   const course = params.get('course') ? decodeURIComponent(params.get('course')) : '';
 
   const slotNow = getSlot(refreshSec);
-  const valid = token === hashToken(sid+':'+slotNow) || token === hashToken(sid+':'+(slotNow-1));
+  // Telefonun kamera + sayfa yükleme süresine tolerans: şu anki ve son 3 kodu da kabul et
+  const valid = [0,1,2,3].some(back => token === hashToken(sid+':'+(slotNow-back)));
 
   if(!valid){
     app.innerHTML = `
@@ -326,10 +328,10 @@ function renderTeacherView(){
     <div id="session" class="hidden">
       <div class="seal-wrap">
         <div class="seal">
-          <svg viewBox="0 0 240 240">
-            <circle class="track" cx="120" cy="120" r="116"/>
-            <circle class="progress" id="ring" cx="120" cy="120" r="116"
-                    stroke-dasharray="729" stroke-dashoffset="0"/>
+          <svg viewBox="0 0 280 280">
+            <circle class="track" cx="140" cy="140" r="135"/>
+            <circle class="progress" id="ring" cx="140" cy="140" r="135"
+                    stroke-dasharray="848" stroke-dashoffset="0"/>
           </svg>
           <div class="qr-box" id="qr"></div>
         </div>
@@ -376,18 +378,17 @@ function startSession(){
   document.getElementById('course-title').textContent = course || `Oturum ${sid}`;
 
   const ring = document.getElementById('ring');
-  const CIRC = 2 * Math.PI * 116;
+  const CIRC = 2 * Math.PI * 135;
   ring.setAttribute('stroke-dasharray', CIRC.toFixed(0));
 
   function refreshQR(){
     const slot = getSlot(refreshSec);
     const token = hashToken(sid+':'+slot);
-    let url = `${location.origin}${location.pathname}?session=${sid}&t=${token}&r=${refreshSec}`;
-    if(course) url += `&course=${encodeURIComponent(course)}`;
+    const url = `${location.origin}${location.pathname}?session=${sid}&t=${token}&r=${refreshSec}`;
 
     const qrBox = document.getElementById('qr');
     qrBox.innerHTML = '';
-    new QRCode(qrBox, { text: url, width: 180, height: 180, colorDark: '#22324F', colorLight: '#FAF7F2' });
+    new QRCode(qrBox, { text: url, width: 220, height: 220, colorDark: '#000000', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.L });
   }
 
   function tick(){
@@ -396,7 +397,7 @@ function startSession(){
     const remaining = Math.ceil(refreshSec2 - elapsed);
     document.getElementById('secs').textContent = remaining;
 
-    const CIRC2 = 2 * Math.PI * 116;
+    const CIRC2 = 2 * Math.PI * 135;
     const frac = elapsed / refreshSec2;
     ring.setAttribute('stroke-dashoffset', (CIRC2 * frac).toFixed(1));
 
