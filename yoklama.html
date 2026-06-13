@@ -249,12 +249,22 @@ function renderStudentView(){
   const valid = [0,1,2,3].some(back => token === hashToken(sid+':'+(slotNow-back)));
 
   if(!valid){
+    const expected = [0,1,2,3].map(back => hashToken(sid+':'+(slotNow-back)));
     app.innerHTML = `
       <div class="eyebrow">Yoklama · Giriş</div>
       <h1>Kod süresi doldu</h1>
       <p class="sub">${course ? course+' — ' : ''}Bu kare kod artık geçerli değil. Ekranda görünen güncel kodu okutmanız gerekiyor.</p>
       <div class="panel warn">
         Kare kod her ${refreshSec} saniyede bir değişir. Lütfen telefonunuzun kamerasını tekrar ekrana yöneltin ve <b>o anki</b> kodu okutun.
+      </div>
+      <div class="panel" style="background:var(--paper-2); border:1px solid var(--line); color:#5b6b85; font-family:'IBM Plex Mono', monospace; font-size:11px; line-height:1.7;">
+        Teşhis bilgisi (ekran görüntüsü alıp gönderebilirsiniz):<br>
+        Cihaz saati: ${new Date().toLocaleString('tr-TR')}<br>
+        Epoch (ms): ${Date.now()}<br>
+        Yenileme süresi: ${refreshSec}s<br>
+        Mevcut dilim: ${slotNow}<br>
+        Alınan kod: ${token}<br>
+        Beklenen kodlar: ${expected.join(', ')}
       </div>
     `;
     return;
@@ -336,6 +346,7 @@ function renderTeacherView(){
           <div class="qr-box" id="qr"></div>
         </div>
         <div class="countdown">Yeni kod: <b id="secs">--</b> sn sonra</div>
+        <div class="countdown" id="debug-line" style="font-size:11px; opacity:0.6;"></div>
       </div>
 
       <hr>
@@ -389,6 +400,9 @@ function startSession(){
     const qrBox = document.getElementById('qr');
     qrBox.innerHTML = '';
     new QRCode(qrBox, { text: url, width: 220, height: 220, colorDark: '#000000', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.L });
+
+    const dbg = document.getElementById('debug-line');
+    if(dbg){ dbg.textContent = `${new Date().toLocaleString('tr-TR')} · dilim ${slot} · kod ${token}`; }
   }
 
   function tick(){
