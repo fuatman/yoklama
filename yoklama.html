@@ -217,6 +217,9 @@ const FIELD_NO = 'entry.539130821';     // Öğrenci No
 const FIELD_NAME = 'entry.367972374';   // Ad Soyad
 const FIELD_COURSE = 'entry.1412379135'; // Ders Adı
 
+// Öğretmen şifresi — sadece dersi başlatırken bir kez girilir
+const TEACHER_PASSWORD = '1945';
+
 // ---------- helpers ----------
 function hashToken(str){
   let h = 5381;
@@ -252,7 +255,7 @@ function renderStudentView(){
 
   const slotNow = getSlot(refreshSec);
   // Cihaz saatleri arasında fark olabileceği için hem geçmiş hem gelecek kodları kabul et
-  const TOLERANCE = [-2,-1,0,1,2,3];
+  const TOLERANCE = [-1,0,1,2];
   const valid = TOLERANCE.some(delta => token === hashToken(sid+':'+(slotNow+delta)));
 
   if(!valid){
@@ -350,6 +353,9 @@ function renderTeacherView(){
       <select id="refresh">
         ${REFRESH_OPTIONS.map(s=>`<option value="${s}" ${s===30?'selected':''}>${s} saniye</option>`).join('')}
       </select>
+      <label for="teacher-pass">Öğretmen şifresi</label>
+      <input type="password" id="teacher-pass" autocomplete="off" placeholder="Şifreyi girin">
+      <div id="setup-error"></div>
       <button id="start-btn">Dersi başlat</button>
     </div>
 
@@ -378,7 +384,16 @@ function renderTeacherView(){
     </div>
   `;
 
-  document.getElementById('start-btn').addEventListener('click', startSession);
+  document.getElementById('start-btn').addEventListener('click', ()=>{
+    const pass = document.getElementById('teacher-pass').value.trim();
+    const errorEl = document.getElementById('setup-error');
+    if(pass !== TEACHER_PASSWORD){
+      errorEl.innerHTML = `<div class="panel warn">Şifre yanlış. Lütfen öğretmen şifresini doğru girin.</div>`;
+      return;
+    }
+    errorEl.innerHTML = '';
+    startSession();
+  });
 }
 
 let timers = {};
