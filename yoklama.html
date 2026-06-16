@@ -280,6 +280,23 @@ function renderStudentView(){
     return;
   }
 
+  // Bu cihaz bu oturumda (ders) daha önce kayıt yaptı mı?
+  const deviceKey = 'yoklama_done_' + sid;
+  let already = null;
+  try{ already = JSON.parse(localStorage.getItem(deviceKey)); }catch(e){}
+
+  if(already && already.no && already.name){
+    app.innerHTML = `
+      <div class="eyebrow">Yoklama · Giriş</div>
+      <h1>${course || 'Yoklama'}</h1>
+      <div class="panel ok">
+        Bu cihazdan bu ders için zaten yoklama gönderildi — <b>${already.name}</b> (${already.no}).
+      </div>
+      <p class="sub">Bunun bir hata olduğunu düşünüyorsanız öğretim üyenize bildirin.</p>
+    `;
+    return;
+  }
+
   app.innerHTML = `
     <div class="eyebrow">Yoklama · Giriş</div>
     <h1>${course || 'Yoklama'}</h1>
@@ -302,6 +319,9 @@ function renderStudentView(){
       resultEl.innerHTML = `<div class="panel warn">Lütfen öğrenci numaranızı ve adınızı girin.</div>`;
       return;
     }
+
+    // Bu cihazı bu oturum için "kullanıldı" olarak işaretle
+    try{ localStorage.setItem(deviceKey, JSON.stringify({no, name, t: Date.now()})); }catch(e){}
 
     // Gizli bir iframe + form ile Google Form'a gönder (sayfa yönlendirmesi yapmadan)
     const iframeName = 'hidden_submit_frame';
